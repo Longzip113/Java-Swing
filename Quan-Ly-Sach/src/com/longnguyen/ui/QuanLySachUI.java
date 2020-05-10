@@ -25,6 +25,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.longnguyen.Service.NhaXuatBanService;
+import com.longnguyen.Service.SachService;
 import com.longnguyen.model.NhaXuatBan;
 import com.longnguyen.util.PagingUtils;
 
@@ -47,6 +48,7 @@ public class QuanLySachUI extends JFrame{
 	private PagingUtils pagingUtils = null;
 	private NhaXuatBan nhaXuatBan = new NhaXuatBan();
 	private NhaXuatBanService nhaXuatBanService = new NhaXuatBanService();
+	private SachService sachService = new SachService();
 	private Integer page = 1;
 	private Integer limit = 2;
 	
@@ -63,7 +65,7 @@ public class QuanLySachUI extends JFrame{
 	}
 
 	private void hienThiToanBoNhaSanXuat() {
-		NhaXuatBanService nhaXuatBanService = new NhaXuatBanService();
+		nhaXuatBanService = new NhaXuatBanService();
 		DSNXB = nhaXuatBanService.findAll(pagingUtils);
 		dtmNxB.setRowCount(0);
 		for (NhaXuatBan nhaXuatBan : DSNXB) {
@@ -130,6 +132,50 @@ public class QuanLySachUI extends JFrame{
 			}
 		});
 		
+		btnSua.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblNxB.getSelectedRow();
+				if(row == -1) return;
+				String maNXB = tblNxB.getValueAt(row, 0) + ""; 
+				
+				SuaThongTinUI STT = new SuaThongTinUI("Sửa thông tin");
+				STT.maNXB = maNXB;
+				STT.hienThiThongTinChiTiet();
+				STT.showWindow();
+			}
+		});
+		
+		btnXoa.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblNxB.getSelectedRow();
+				if(row == -1) return;
+				String maNXB = tblNxB.getValueAt(row, 0) + "";
+				
+				int yesOrNo = JOptionPane.showConfirmDialog(null, "Bạn có muốn xóa hay không!", "Delete row ",JOptionPane.YES_NO_OPTION);
+				if(yesOrNo == 0) {
+					int soLuongSach = checkNXB(maNXB);
+					if (soLuongSach != 0) {
+						JOptionPane.showMessageDialog(null, "Bạn có " + soLuongSach + " cuốn sách của nhà xuất bản chưa xóa xin kiểm tra lại !"
+														,"Cảnh báo !",JOptionPane.WARNING_MESSAGE);
+					}else {
+						nhaXuatBanService.delete(maNXB);
+					}
+				} else {
+					JOptionPane.showConfirmDialog(null, "Xoa That bai");
+				}
+			}
+		});
+		
+	}
+
+
+	protected int checkNXB(String maNXB) {
+		// TODO Auto-generated method stub
+		return sachService.countItem(maNXB);
 	}
 
 	protected void xuLyThem() {

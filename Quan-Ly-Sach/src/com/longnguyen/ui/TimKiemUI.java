@@ -5,13 +5,18 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -25,9 +30,13 @@ public class TimKiemUI extends JFrame{
 	private static final long serialVersionUID = 1L;
 
 	JTextField txtTimKiem;
-	JButton btnBatDauTim;
+	JButton btnBatDauTim, btnThem;
 	DefaultTableModel dtmSach;
 	JTable tblSach;
+	
+	SachService sachService;
+	JMenuItem mNuEdit, mNuDelete;
+	JPopupMenu popupMenu;
 	public  TimKiemUI(String title) {
 		
 		super(title);
@@ -46,6 +55,84 @@ public class TimKiemUI extends JFrame{
 				xuLyTimKiem();
 			}
 		});
+		
+		btnThem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SuaThongTinSachUI ui = new SuaThongTinSachUI("Thông tin chi tiết ", false);
+				ui.showWindow();
+			}
+		});
+		
+		tblSach.addMouseListener(new MouseAdapter() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				int row = tblSach.rowAtPoint(e.getPoint());// Lấy dong tại vị trí ta click 
+				int col = tblSach.columnAtPoint(e.getPoint()); // Lấy cot tại vị trí ta click 
+				if(e.isPopupTrigger()) //Vừa nhấn chuôt phải
+				{
+					if (! tblSach.isRowSelected(row)) {
+						tblSach.changeSelection(row, col, false, false);
+					}
+					popupMenu.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				int row = tblSach.rowAtPoint(e.getPoint());// Lấy dong tại vị trí ta click 
+				int col = tblSach.columnAtPoint(e.getPoint()); // Lấy cot tại vị trí ta click 
+				if(e.isPopupTrigger()) //Vừa nhấn chuôt phải
+				{
+					if (! tblSach.isRowSelected(row)) {
+						tblSach.changeSelection(row, col, false, false);
+					}
+					popupMenu.show(e.getComponent(), e.getX(), e.getY());
+				}
+		
+			}
+		});
+		mNuEdit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblSach.getSelectedRow();
+				if(row == -1) return;
+				String maSach = tblSach.getValueAt(row, 0) + ""; 
+				
+				SuaThongTinSachUI STTS = new SuaThongTinSachUI("Thông tin chi tiết", true);
+				STTS.maSach = maSach;
+				STTS.hienThiThongTinChiTiet();
+				STTS.showWindow();
+				
+			}
+		});
+		mNuDelete.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblSach.getSelectedRow();
+				if(row == -1) return;
+				String maSach = tblSach.getValueAt(row, 0) + "";
+				
+				int yesOrNo = JOptionPane.showConfirmDialog(null, "Bạn có muốn xóa hay không!", "Delete row ",JOptionPane.YES_NO_OPTION);
+				if(yesOrNo == 0) {
+					sachService = new SachService();
+					Boolean check = sachService.delete(maSach);
+					if (check) {
+						JOptionPane.showConfirmDialog(null, "Xoa thành công");
+					} else {
+						JOptionPane.showConfirmDialog(null, "Xoa That bai");
+					}
+				} else {
+					JOptionPane.showConfirmDialog(null, "Xoa That bai");
+				}
+				
+			}
+		});
+		
 	}
 
 	protected void xuLyTimKiem() {
@@ -62,7 +149,6 @@ public class TimKiemUI extends JFrame{
 	}
 
 	private void addControls() {
-		// TODO Auto-generated method stub
 		Container con = getContentPane();
 		con.setLayout(new BorderLayout());
 		JPanel pnNorth = new JPanel();
@@ -86,6 +172,22 @@ public class TimKiemUI extends JFrame{
 											, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		pnCenter.add(scTable, BorderLayout.CENTER);
 		con.add(pnCenter, BorderLayout.CENTER);
+		
+		JPanel pnSouth = new JPanel();
+		pnSouth.setLayout(new FlowLayout(FlowLayout.LEFT));
+		btnThem = new JButton("Thêm");
+		pnSouth.add(btnThem);
+		con.add(pnSouth, BorderLayout.SOUTH);
+		
+		popupMenu = new JPopupMenu();
+		mNuEdit = new JMenuItem("Chỉnh sửa");
+		mNuDelete = new JMenuItem("Xóa");
+		popupMenu.add(mNuEdit);
+		popupMenu.addSeparator();
+		popupMenu.add(mNuDelete);
+		
+		tblSach.setComponentPopupMenu(popupMenu);
+		
 	}
 	
 	public void showWindow() {

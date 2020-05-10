@@ -80,5 +80,75 @@ public class NhaXuatBanService extends MySqlService {
 		}
 		return true;
 	}
+	
+	public NhaXuatBan findByMaNXB(String maNXB) {
+
+		NhaXuatBan NXB = null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			String sql = "select * from NHAXUATBAN where MANXB = ?";
+			preparedStatement = (PreparedStatement) conn.prepareStatement(sql);
+			preparedStatement.setString(1, maNXB);
+			resultSet = preparedStatement.executeQuery();
+			while (resultSet.next()) {
+				NXB = new NhaXuatBan();
+				NXB.setMaNhaSanXuat(resultSet.getString(1));
+				NXB.setTenNhaSanXuat(resultSet.getString(2));
+				NXB.setDiaChi(resultSet.getString(3));
+				NXB.setSoDienThoi(resultSet.getString(4));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		} 
+		return NXB;
+	}
+	
+	public void delete(String maNXB) {
+		PreparedStatement preparedStatement = null;
+		try {
+			StringBuilder sql = new StringBuilder();
+			sql.append("DELETE FROM NHAXUATBAN WHERE MANXB = ?");
+			conn.setAutoCommit(false);
+			preparedStatement = (PreparedStatement) conn.prepareStatement(sql.toString());
+			preparedStatement.setString(1, maNXB);
+			preparedStatement.executeUpdate();
+			conn.commit();
+			
+		} catch (Exception e) {
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public boolean update(NhaXuatBan NXB) {
+		PreparedStatement preparedStatement = null;
+		try {
+			StringBuilder sql = new StringBuilder();
+			sql.append("UPDATE NHAXUATBAN SET ");
+			sql.append(" TENNXB = ?, DIACHI = ?, SDT = ?");
+			sql.append(" WHERE MANXB = ?");
+			conn.setAutoCommit(false);
+			preparedStatement = (PreparedStatement) conn.prepareStatement(sql.toString());
+			preparedStatement.setString(1, NXB.getTenNhaSanXuat());
+			preparedStatement.setString(2, NXB.getDiaChi());
+			preparedStatement.setString(3, NXB.getSoDienThoi());
+			preparedStatement.setString(4, NXB.getMaNhaSanXuat());
+			preparedStatement.executeUpdate();
+			conn.commit();
+			
+		} catch (Exception e) {
+			try {
+				conn.rollback();
+				return false;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		return true;
+	}
 
 }
